@@ -22,12 +22,10 @@ func generateInRange(start, stop int) <-chan int {
 }
 
 func merge(channels ...<-chan int) <-chan int {
-	//TODO
-	ar wg sync.WaitGroup
+	
+	мar wg sync.WaitGroup
 
 	merged := make(chan int)
-
-	wg.Add(len(channels))
 
 	output := func(gay <-chan int) {
 		for nig := range gay {
@@ -36,6 +34,8 @@ func merge(channels ...<-chan int) <-chan int {
 		wg.Done()
 	}
 
+	wg.Add(len(channels))
+	
 	for _, outChan := range channels {
 		go output(outChan)
 	}
