@@ -3,7 +3,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"math/rand"
 	"time"
@@ -21,7 +20,8 @@ func unpredictableFunc() int64 {
 	return rnd
 }
 
-// Нужно изменить функцию-обёртку, которая будет работать с заданным таймаутом (например, 1 секунду).
+// Нужно изменить функцию-обёртку, которая будет работать с заданным таймаутом
+// (например, 1 секунду).
 // Если "длинная" функция отработала за это время - отлично, возвращаем результат.
 // Если нет - возвращаем ошибку. Результат работы в этом случае нам не важен.
 //
@@ -33,24 +33,29 @@ func predictableFunc(ctx context.Context) int64 {
 
 	go func() {
 		defer close(fnDone)
-		fnRes := unpredictableFunc()
+
 		log.Println("Starting func")
+		fnRes := unpredictableFunc()
+		log.Println("result of unpredictable func - ", fnRes)
+
 		fnDone <- fnRes
 	}()
+
 	select {
 	case <-ctx.Done():
 		log.Printf("ctx done: %v", ctx.Err())
 		return 0
 	case <-fnDone:
-		defer log.Println("execution time")
-		return unpredictableFunc()
+		defer log.Println("end of func")
+		return 0
 	}
 }
 
 func main() {
-
+	start := time.Now()
 	ctx, cancel := context.WithTimeout(context.Background(), 1000*time.Millisecond)
 	defer cancel()
-	res := predictableFunc(ctx)
-	fmt.Println(res)
+	predictableFunc(ctx)
+	log.Println("execution time -", time.Since(start))
 }
+
