@@ -13,6 +13,9 @@ import (
 
 func numGen(wg *sync.WaitGroup, n int, output chan int) {
 
+	defer wg.Done()
+	defer close(output)
+	
 	fmt.Printf("Generated nums - ")
 	for i := 0; i < n; i++ {
 		num := rand.Intn(n)
@@ -21,8 +24,6 @@ func numGen(wg *sync.WaitGroup, n int, output chan int) {
 	}
 	fmt.Printf("\n")
 
-	close(output)
-	wg.Done()
 }
 
 func numFilter(wg *sync.WaitGroup, input <-chan int, output chan<- int) {
@@ -38,7 +39,7 @@ func numFilter(wg *sync.WaitGroup, input <-chan int, output chan<- int) {
 }
 
 func numPrint(wg *sync.WaitGroup, filtInput <-chan int) {
-	time.Sleep(10 * time.Millisecond)
+	//time.Sleep(10 * time.Millisecond)
 	fmt.Printf("Filtered nums - ")
 	for num := range filtInput {
 		fmt.Printf("%v ", num)
