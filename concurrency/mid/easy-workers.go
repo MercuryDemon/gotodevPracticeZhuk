@@ -8,42 +8,40 @@ import (
 	"log"
 	"math/rand"
 	"sync"
-	"time"
 )
 
 // создаю воркера который будет получать таски из общего для всех воркеров канала tasks и отправлятб в общий канал results
 
 func worker(wg *sync.WaitGroup, inputChan <-chan int, output chan<- int, idx int) {
 
+	defer wg.Done()
+
 	log.Printf("[worker] Worker #%v started\n", idx)
-	time.Sleep(200 * time.Millisecond)
+	//time.Sleep(200 * time.Millisecond)
 
 	for num := range inputChan {
-		log.Printf("worker #%v calculate square of num %v\n", idx, num) // воркер печатает из общего канала число которое он будет возводить в степень 
+		log.Printf("worker #%v calculate square of num %v\n", idx, num) // воркер печатает из общего канала число которое он будет возводить в степень
 		output <- num * num
 	}
-	wg.Done()
-
 }
 
 func main() {
 
 	log.Println("[main] main() started")
-	var wg sync.WaitGroup          // создаю вейтгруппу чтобы это все не посыпалось
+	var wg sync.WaitGroup // создаю вейтгруппу чтобы это все не посыпалось
 	var tasks = make(chan int, 10)
 	var results = make(chan int, 10) // создаю каналы
 
-
-  // запускаю три воркера
+	// запускаю три воркера
 	for i := 0; i < 3; i++ {
 		wg.Add(1)
 		go worker(&wg, tasks, results, i+1)
 	}
 
-  // определяю энное число задач 
+	// определяю энное число задач
 	N := rand.Intn(10)
-  
-  // Закидываю таски в канал 
+
+	// Закидываю таски в канал
 	for i := 1; i <= N; i++ {
 		if i%2 != 0 {
 			tasks <- i * 2
@@ -53,16 +51,21 @@ func main() {
 	}
 	log.Printf("[main] Wrote %v tasks\n", N)
 
-  //после отправки в канал всех задач, закрываю канал
+	//после отправки в канал всех задач, закрываю канал
 	close(tasks)
 
-  //ждём пока все воркеры доработают
-	wg.Wait()
+	//ждём пока все воркеры доработают
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
 
-	for i := 1; i <= N; i++ {
+	for i := range results {
 		result := <-results
-		log.Println("[main] Result", i, ":", result) // выводим результаты 
+		log.Println("[main] Result", i, ":", result) // выводим результаты
 	}
-	log.Println("[main] main() stopped") 
+	log.Println("[main] main() stopped")
 
 }
+
+
