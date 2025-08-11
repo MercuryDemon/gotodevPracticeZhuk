@@ -25,8 +25,6 @@ func say(done chan<- struct{}, id int, text string) {
 
 func main() {
 
-	var done = make(chan struct{})
-
 	phrases := []string{
 		"go is awesome",
 		"cats are cute",
@@ -34,24 +32,15 @@ func main() {
 		"channels are hard",
 		"floor is lava",
 	}
+	var done = make(chan struct{}, len(phrases))
+
 	for idx, phrase := range phrases {
 		go say(done, idx+1, phrase)
 		log.Println("start worker number ", idx)
 	}
-	//time.Sleep(3 * time.Second)
-	counter := 0
-	for {
-		select {
-		case <-done:
-			counter += 1
-			log.Println("worker done his job")
-		default:
-			if counter == len(phrases) {
-				log.Println("all done")
-				return
-			}
-			continue
-		}
+
+	for range phrases {
+		<-done
 	}
 }
 //
