@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 )
-
+//neega
 // Есть функция generate(), которая генерит числа
 // Функция использует канал отмены. Переделать на контекст.
 func generate(ctx context.Context, start int) <-chan int {     //Переделал на контекст
